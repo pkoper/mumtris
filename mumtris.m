@@ -174,7 +174,7 @@ clear
 
 exit
 	n s
-	s s=mt_"09  Piotr Koper <piotr.koper.gmail.com>09 8 h2tps:2/github.com/pkoper"
+	s s=mt_"09  Piotr Koper <piotr.koper@gmail.com>09 8 h2tps:2/github.com/pkoper"
 	u $p:(x=0:y=0:clearscreen) d write(.s,dh/2-3,dw/2-24) h 1 r *s:0 r *s:4
 	u $p:(x=0:y=0:clearscreen:echo)
 	q
