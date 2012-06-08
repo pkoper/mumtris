@@ -22,6 +22,8 @@
 ; Resize your terminal (e.g. maximize your PuTTY window), restart GT.M so that
 ; it can report true size of your terminal, and d ^mumtris.
 ;
+; Try setting ansi=0 for GT.M compatible cursor positioning.
+;
 ; NOTICE: Mumtris uses "active waiting" for making delays lower that 1s.
 ;         That means that one of your CPU will be used at 99%. It's not a bug,
 ;         the Mumtris and GT.M will be fully responsive. Take care when
@@ -29,9 +31,9 @@
 ;
 
 mumtris
-	n e,n,w,h,gr,fl,hl,sc,lv,lc,sb,st,ml,dh,dw,mx,my,mt,r,y,x,t10m,c,ne,i,q
-	u $p:(x=0:y=0:clearscreen:noecho)
+	n ansi,e,n,w,h,gr,fl,hl,sc,lv,lc,sb,st,ml,dh,dw,mx,my,mt,r,y,x,t10m,c,ne,i,q
 
+	s ansi=1	; use (faster) ANSI CSI instead of USE $P:X=x positioning
 	s w=10		; matrix width
 	s h=22		; matrix height (see below)
 	s gr=1		; grid
@@ -50,6 +52,8 @@ mumtris
 	s my=dh/2-(h/2)-1	; matrix top coordinate
 	s mt="3 5_9 8 2_9 .2_02 /5 \2 2_ 2_2 6_/2 |8_|2_| 6_0 /2 \ /2 \|2 |2 \/5 \3 2_\_2 2_ \2 |/2 3_/0/4 Y4 \2 |2 /2 Y Y2 \2 |2 |2 | \/2 |\3_ \0\4_|2_2 /4_/|2_|_|2 /2_|2 |2_|2 |2_/4_2 >08 \/9 3 \/9 9 2 \/0" ; Mumtris
 
+	u $p:noecho d cls
+
 	d intro
 
 	d elements
@@ -59,7 +63,7 @@ mumtris
 
 	s (i,q)=0
 	f  q:q  d
-	. u $p:(x=0:y=0)
+	. d pos(0,0)
 	. s c=$$key
 	. i c=1 d exit s q=1 q
 	. s i=$s('c:0,1:i+1)
@@ -136,8 +140,7 @@ rotate
 
 fall(k)
 	n c
-	s c=$$collision(r,y+1,x)
-	i c q:$q 1 q
+	i $$collision(r,y+1,x) q:$q 1 q
 	s y=y+1
 	d:$g(k) score(1)
 	q:$q 0 q
@@ -175,41 +178,55 @@ clear
 exit
 	n s
 	s s=mt_"09  Piotr Koper <piotr.koper@gmail.com>09 8 h2tps:2/github.com/pkoper"
-	u $p:(x=0:y=0:clearscreen) d write(.s,dh/2-3,dw/2-24) h 1 r *s:0 r *s:4
-	u $p:(x=0:y=0:clearscreen:echo)
+	d cls d write(.s,dh/2-3,dw/2-24) h 1 r *s:0 r *s:4
+	d cls u $p:echo
 	q
 
 intro
 	n s
 	s s=mt_"9 9 8 Mumtris for GT.M0"
-	u $p:(x=0:y=0:clearscreen) h 1 d write(.s,dh/2-3,dw/2-24) h 1
+	d cls h 1 d write(.s,dh/2-3,dw/2-24) h 1
 	d ticks
-	u $p:(x=0:y=0:clearscreen)
+	d cls
 	r s:0
+	q
+
+cls
+	d pos(0,0,1)
+	q
+
+pos(y,x,c)
+	i ansi d
+	. ; workaround for ANSI driver: NL in some safe place (1,1)
+	. w $c(27)_"[1;1f",!,$c(27)_"["_(y+1)_";"_(x+1)_"f"
+	. w:$g(c) $c(27)_"[2J"
+	e  d
+	. u $p:(x=x:y=y)
+	. u:$g(c) $p:clearscreen
 	q
 
 over
 	n s
 	s s="2 8_9 9 6 8_0 /2 5_/5_4 5_3 4_3 \5_2 \3_2 2_ 9_2_0/3 \2 3_\2_2 \2 /5 \_/ 2_ \3 /3 |3 \2 \/ 2/ 2_ \_2 2_ \0\4 \_\2 \/ 2_ \|2 Y Y2 \2 3_/2 /4 |4 \3 /\2 3_/|2 | \/0 \6_2 (4_2 /2_|_|2 /\3_2 > \7_2 /\_/2 \3_2 >2_|08 \/5 \/6 \/5 \/9  \/9  \/0"
-	u $p:(x=0:y=0:clearscreen) d write(.s,dh/2-3,dw/2-32) h 1 r *s:0 r *s:2
+	d cls d write(.s,dh/2-3,dw/2-32) h 1 r *s:0 r *s:2
 	q
 
 write(s,y,x)
 	n i,j,l,c,d
-	u $p:(x=x:y=y)
+	d pos(y,x)
 	s l=$l(s) f i=1:1:l d
 	. s c=$e(s,i)
 	. i c?1N d
-	.. i 'c s y=y+1 u $p:(x=x:y=y) q
+	.. i 'c s y=y+1 d pos(y,x) q
 	.. s d=$e(s,i+1) f j=1:1:c w d
 	.. s i=i+1
 	. e  w c
-	u $p:(x=0:y=0)
+	d pos(0,0)
 	q
 
 help
 	n i,x,l,j
-	s i=9 f x="MOVE: LEFT, RIGHT","TURN: UP","DROP: SPACE","","FILL: F","GRID: G","HELP: H","","QUIT: ESC, Q" u $p:(x=dw/2+(3*w/2+3):y=dh/2-(h/2)+$i(i)) d
+	s i=9 f x="MOVE: LEFT, RIGHT","TURN: UP","DROP: SPACE","","FILL: F","GRID: G","HELP: H","","QUIT: ESC, Q" d pos(dh/2-(h/2)+$i(i),dw/2+(3*w/2+3)) d
 	. i hl w x
 	. e  s l=$l(x) f j=1:1:l w " "
 	q
@@ -227,8 +244,8 @@ step() q 0.85**lv*sb+(0.1*lv)
 score(s,l)
 	s:$g(s) sc=sc+s
 	i $g(l) s lv=lv+l,st=$$step
-	u $p:(x=dw/2+(3*w/2+3):y=dh/2-(h/2)+2) w "SCORE: ",sc
-	u $p:(x=dw/2+(3*w/2+3):y=dh/2-(h/2)+3) w "LEVEL: ",lv
+	d pos(dh/2-(h/2)+2,dw/2+(3*w/2+3)) w "SCORE: ",sc
+	d pos(dh/2-(h/2)+3,dw/2+(3*w/2+3)) w "LEVEL: ",lv
 	q
 
 preview
@@ -238,16 +255,15 @@ preview
 stack
 	n i,j,x,y
 	s x=mx+1,y=my
-	f i=1:1:h u $p:y=y+i-1 f j=1:1:w i $g(n(i,j)) u $p:(x=3*(j-1)+x) w $$fill
+	f i=1:1:h f j=1:1:w i $g(n(i,j)) d pos(y+i-1,3*(j-1)+x) w $$fill
 	q
 
 matrix
 	n i,j
-	u $p:(x=mx:y=my)
-	f i=1:1:h d
-	. u $p:x=mx w "|" f j=1:1:w w $s(gr:" . ",1:"   ")
-	. w "|",!
-	u $p:x=mx w "|" f j=1:1:w*3 w "~"
+	f i=0:1:h-1 d
+	. d pos(my+i,mx) w "|" f j=1:1:w w $s(gr:" . ",1:"   ")
+	. w "|"
+	d pos(my+h,mx) w "|" f j=1:1:w*3 w "~"
 	w "|",!
 	q
 
@@ -270,13 +286,13 @@ elements
 	s (e(1,1,2,1),e(1,1,2,2),e(1,1,2,3),e(1,1,2,4))=1
 	s (e(1,2,1,2),e(1,2,2,2),e(1,2,3,2),e(1,2,4,2))=1
 	; |__
-	s e(2)=4,e(2,1)=3
+	s e(2)=4,e(2,1)=2
 	s (e(2,1,1,1),e(2,1,2,1),e(2,1,2,2),e(2,1,2,3))=1
 	s (e(2,2,1,2),e(2,2,1,3),e(2,2,2,2),e(2,2,3,2))=1
 	s (e(2,3,2,1),e(2,3,2,2),e(2,3,2,3),e(2,3,3,3))=1
 	s (e(2,4,1,2),e(2,4,2,2),e(2,4,3,1),e(2,4,3,2))=1
 	; __|
-	s e(3)=4,e(3,1)=3
+	s e(3)=4,e(3,1)=2
 	s (e(3,1,1,3),e(3,1,2,1),e(3,1,2,2),e(3,1,2,3))=1
 	s (e(3,2,1,2),e(3,2,2,2),e(3,2,3,2),e(3,2,3,3))=1
 	s (e(3,3,2,1),e(3,3,2,2),e(3,3,2,3),e(3,3,3,1))=1
