@@ -1,0 +1,57 @@
+#!/bin/sh
+
+#  Mumtris conversion tool for MUMPS V1
+#  Copyright (C) 2012 Piotr Koper <piotr.koper@gmail.com>
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU Affero General Public License as
+#  published by the Free Software Foundation, either version 3 of the
+#  License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Affero General Public License for more details.
+#
+#  You should have received a copy of the GNU Affero General Public License
+#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+# CONVERSION
+# 1. delete first line ";"
+# 2. insert routine name
+# 3. remove empty lines
+# 4. replace tabs with spaces
+# 5. add space after label names
+# 6 - 8 change key() routine
+# 9. replace zsh "d":x with GETENV
+# 10 - 11 change USE $P parameters
+# 12. remove the ESCAPE use
+# 13 - 14 replace call method (it's also a recent feature in GT.M)
+# 15. single ESC is undetectable with READ *, change info on keys
+# 16. MUMPS V1 bug: https://sourceforge.net/tracker/?func=detail&aid=3533732&group_id=70056&atid=526518
+
+sed '
+	1d
+	4i mumtris
+	/^$/d;
+	s/^\([^[:space:];]\+\)$/\1 /;
+	s/[[:space:]]/ /g;
+	s/\. i c=27 d  q:q/. i c=27 s (q,ex)=1 q/;
+	s/\.\. i $l($zb)=1 s (q,ex)=1 q/. i c=0 d/;
+	s/\.\. s c=$a($e($zb,3))/.. s c=$a($e($k,3))/
+	s/zsh "d":x/s x=$\&%GETENV("size") s:x dh=$p(x," ",1),dw=$p(x," ",2) s:x="" dh=25,dw=80/
+	s/u $p:noecho/u $p:"noecho"/
+	s/u $p:echo/u $p:"echo"/
+	/u $p:escape/d
+	s/d new /d new() /
+	s/d score /d score() /
+	s/"QUIT: ESC, Q"/"QUIT: Q"/
+	s/=3&$$fall/=3 i $$fall/
+	' mumtris.m > mumtris.v1
+
+# LOAD
+./mumps -x 'd INT^%RR("mumtris.v1")' testdb
+
+# ENVIRONMENT SETUP
+export size="`stty size`"
+./mumps -x "d ^mumtris" testdb

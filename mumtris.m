@@ -42,7 +42,7 @@ mumtris
 	s sc=0		; score
 	s lv=1		; level
 	s lc=0		; lines cleared at current level
-	s sb=40		; step base
+	s sb=70		; step base
 	s st=$$step	; current step
 	s ml=3		; move/rotate hold limit (without fall)
 
@@ -52,7 +52,9 @@ mumtris
 	s my=dh/2-(h/2)-1	; matrix top coordinate
 	s mt="3 5_9 8 2_9 .2_02 /5 \2 2_ 2_2 6_/2 |8_|2_| 6_0 /2 \ /2 \|2 |2 \/5 \3 2_\_2 2_ \2 |/2 3_/0/4 Y4 \2 |2 /2 Y Y2 \2 |2 |2 | \/2 |\3_ \0\4_|2_2 /4_/|2_|_|2 /2_|2 |2_|2 |2_/4_2 >08 \/9 3 \/9 9 2 \/0" ; Mumtris
 
-	u $p:noecho d cls
+	u $p:noecho
+	u $p:escape
+	d cls
 
 	d intro
 
@@ -72,7 +74,7 @@ mumtris
 	. d redraw
 	q
 
-key() ; 1 - exit, 2 - harddrop, 3 - other char
+key() ; 0 - timeout, 1 - exit, 2 - harddrop, 3 - other char
 	n q,c,d,ex,hd
 	s (q,d,ex,hd)=0
 	n i
@@ -80,19 +82,23 @@ key() ; 1 - exit, 2 - harddrop, 3 - other char
 	f  q:q  d
 	. r *c:0
 	. i c<0&'d d
-	.. f i=1:1:st*t10m r *c:0 q:c>0  i $h
+	.. f i=1:1:st*t10m r *c:0 q:c>-1  i $h
 	. i c<0 s q=1 q
 	. s d=2
 	. i c=27 d  q:q
-	.. r *c:0 i c<0 s (q,ex)=1 q
-	.. i c=91 r *c:0
-	. d:c=65 rotate
-	. d:c=66 fall(1)
-	. d:c=67 right
-	. d:c=68 left
+	.. i $l($zb)=1 s (q,ex)=1 q
+	.. s c=$a($e($zb,3))
+	.. d:c=65 rotate
+	.. d:c=66 fall(1)
+	.. d:c=67 right
+	.. d:c=68 left
 	. i c=70!(c=102) s fl=fl+1#3 d preview
 	. s:c=71!(c=103) gr='gr
 	. i c=72!(c=104) s hl='hl d help
+	. d:c=73!(c=105) rotate
+	. d:c=74!(c=106) left
+	. d:c=75!(c=107) fall(1)
+	. d:c=76!(c=108) right
 	. s:c=81!(c=113) (q,ex)=1
 	. i c=32 d drop s hd=1
 	q $s(ex:1,hd:2,d:3,1:0)
@@ -104,15 +110,11 @@ redraw
 	q
 
 ticks
-	n h,b,e,q
-	s h=$h,(b,e,q)=0 f i=1:1:1000000000 i h'=$h s h=$h d  q:q
+	n x,h,b,e,q
+	s h=$h,(b,e,q)=0 f i=1:1:1000000000 r *x:0 i h'=$h s h=$h d  q:q
 	. i 'b s b=i
 	. e  s e=i,q=1
 	s t10m=(e-b)\100
-	q
-
-delay(d)
-	n i f i=1:1:t10m*d i $h
 	q
 
 change
@@ -198,7 +200,7 @@ cls
 pos(y,x,c)
 	i ansi d
 	. ; workaround for ANSI driver: NL in some safe place (1,1)
-	. w $c(27)_"[1;1f",!,$c(27)_"["_(y+1)_";"_(x+1)_"f"
+	. w $c(27)_"[1;1f",!,$c(27)_"["_(y\1+1)_";"_(x\1+1)_"f"
 	. w:$g(c) $c(27)_"[2J"
 	e  d
 	. u $p:(x=x:y=y)
@@ -226,7 +228,7 @@ write(s,y,x)
 
 help
 	n i,x,l,j
-	s i=9 f x="MOVE: LEFT, RIGHT","TURN: UP","DROP: SPACE","","FILL: F","GRID: G","HELP: H","","QUIT: ESC, Q" d pos(dh/2-(h/2)+$i(i),dw/2+(3*w/2+3)) d
+	s i=9 f x="MOVE: LEFT, RIGHT","TURN: UP","DROP: SPACE","","FILL: F","GRID: G","HELP: H","","QUIT: ESC, Q" d pos(dh/2-(h/2)+i,dw/2+(3*w/2+3)) d  s i=i+1
 	. i hl w x
 	. e  s l=$l(x) f j=1:1:l w " "
 	q
@@ -236,7 +238,7 @@ fill() q $s(fl=1:"[#]",fl=2:"[+]",1:"[ ]")
 draw(n,r,y,x,o)
 	n i,j
 	s x=3*x+mx+1,y=y+my
-	f i=1:1:4 i y+i>my u $p:y=y+i-1 f j=1:1:4 u $p:(x=3*(j-1)+x) w $s($g(e(n,r,i,j)):$$fill,$g(o):"   ",1:"")
+	f i=1:1:4 i y+i>my f j=1:1:4 d pos(y+i-1,3*(j-1)+x) w $s($g(e(n,r,i,j)):$$fill,$g(o):"   ",1:"")
 	q
 
 step() q 0.85**lv*sb+(0.1*lv)
