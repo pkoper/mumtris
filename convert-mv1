@@ -26,17 +26,15 @@
 # 9. replace zsh "d":x with GETENV
 # 10 - 11 change USE $P parameters
 # 12. remove the ESCAPE use
-# 13 - 14 replace call method (it's also a recent feature in GT.M)
-# 15. single ESC is undetectable with READ *, change info on keys
-# 16. GT.M feature: https://sourceforge.net/tracker/?func=detail&aid=3533732&group_id=70056&atid=526518
+# 13. single ESC is undetectable with READ *, change info on keys
 
 sed '
 	1d
 	4i\
 mumtris
 	/^$/d;
-	s/^\([^[:space:];]\+\)$/\1 /;
 	s/[[:space:]]/ /g;
+	s/^\([^[:space:];]\+\)$/\1 /;
 	s/\. i c=27 d  q:q/. i c=27 s (q,ex)=1 q/;
 	s/\.\. i $l($zb)=1 s (q,ex)=1 q/. i c=0 d/;
 	s/\.\. s c=$a($e($zb,3))/.. s c=$a($e($k,3))/
@@ -44,10 +42,7 @@ mumtris
 	s/u $p:noecho/u $p:"noecho"/
 	s/u $p:echo/u $p:"echo"/
 	/u $p:escape/d
-	s/d new /d new() /
-	s/d score /d score() /
 	s/"QUIT: ESC, Q"/"QUIT: Q"/
-	s/=3&$$fall/=3 i $$fall/
 	' mumtris.m > mumtris.v1
 
 # LOAD

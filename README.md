@@ -1,6 +1,6 @@
 # Mumtris
 
-This is a tetris game in MUMPS, for GT.M and MUMPS V1, have fun.
+This is a Tetris game in MUMPS, for GT.M V5.x and MUMPS V1, have fun.
 
 Resize your terminal (e.g. maximize your PuTTY window), restart GT.M so that it can report true size of your terminal, and d ^mumtris.
 

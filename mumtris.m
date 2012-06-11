@@ -60,8 +60,8 @@ mumtris
 
 	d elements
 	s ne=$r(e)+1	; new element
-	d change d new d preview
-	d score d help d redraw
+	d change,new(),preview
+	d score(),help,redraw
 
 	s (i,q)=0
 	f  q:q  d
@@ -70,7 +70,7 @@ mumtris
 	. i c=1 d exit s q=1 q
 	. s i=$s('c:0,1:i+1)
 	. s:i'<ml (i,c)=0
-	. i c'=3&$$fall d lock d clear d change d preview i $$new d over d exit s q=1 q
+	. i c'=3,$$fall d lock,clear,change,preview i $$new d over,exit s q=1 q	; short-circuit and in first if
 	. d redraw
 	q
 
@@ -210,7 +210,7 @@ pos(y,x,c)
 over
 	n s
 	s s="2 8_9 9 6 8_0 /2 5_/5_4 5_3 4_3 \5_2 \3_2 2_ 9_2_0/3 \2 3_\2_2 \2 /5 \_/ 2_ \3 /3 |3 \2 \/ 2/ 2_ \_2 2_ \0\4 \_\2 \/ 2_ \|2 Y Y2 \2 3_/2 /4 |4 \3 /\2 3_/|2 | \/0 \6_2 (4_2 /2_|_|2 /\3_2 > \7_2 /\_/2 \3_2 >2_|08 \/5 \/6 \/5 \/9  \/9  \/0"
-	d cls d write(.s,dh/2-3,dw/2-32) h 1 r *s:0 r *s:2
+	d cls,write(.s,dh/2-3,dw/2-32) h 1 r *s:0 r *s:2
 	q
 
 write(s,y,x)
@@ -251,7 +251,7 @@ score(s,l)
 	q
 
 preview
-	d draw(ne,1,3,-5,1)
+	d draw(ne,1,4-e(ne,1),-5,1)
 	q
 
 stack
