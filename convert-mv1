@@ -32,7 +32,8 @@
 
 sed '
 	1d
-	4i mumtris
+	4i\
+mumtris
 	/^$/d;
 	s/^\([^[:space:];]\+\)$/\1 /;
 	s/[[:space:]]/ /g;
